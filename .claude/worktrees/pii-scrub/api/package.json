@@ -1,8 +1,0 @@
-{
-  "name": "api",
-  "private": true,
-  "scripts": {
-    "dev": "go run .",
-    "build": "go build -o bin/api ."
-  }
-}
