@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -45,6 +46,14 @@ func writeJSON(w http.ResponseWriter, v any) {
 }
 
 func writeError(w http.ResponseWriter, err error) {
+	// Naming an owner who is not a budget contributor is the client's mistake,
+	// not the server's: the owner columns are foreign keys to
+	// budget_contributors, so the database is the thing that catches it, and
+	// without this the caller would get a 500 quoting a constraint name.
+	if errors.Is(err, txns.ErrUnknownOwner) {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 

@@ -1,6 +1,30 @@
 package txns
 
-import "strings"
+import (
+	"errors"
+	"strings"
+
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+// ErrUnknownOwner is returned when a write names an owner who is not a budget
+// contributor. Both owner columns are foreign keys to budget_contributors.name,
+// so the database refuses the row rather than storing a partner nobody budgets
+// for; without this the refusal would reach the client as a 500 carrying the
+// constraint's name, when it is really a bad request.
+var ErrUnknownOwner = errors.New("unknown owner: not a budget contributor")
+
+// ownerFKError converts a foreign-key violation on one of the owner columns
+// into ErrUnknownOwner and leaves every other error alone. The category columns
+// are foreign keys too, so the constraint name is checked rather than the
+// SQLSTATE alone — a missing category is a different mistake.
+func ownerFKError(err error) error {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23503" && strings.HasSuffix(pgErr.ConstraintName, "_owner_fkey") {
+		return ErrUnknownOwner
+	}
+	return err
+}
 
 // Most transactions are joint: the household pays them and they belong on the
 // shared budget. A few kinds are personal — one partner's own insurance, salary
@@ -249,19 +273,24 @@ func SetOwner(id int, owner *string) (bool, error) {
 		"UPDATE transactions SET owner = ?, owner_source = ? WHERE id = ?",
 		ownerArg, sourceArg, id,
 	); err != nil {
-		return false, err
+		return false, ownerFKError(err)
 	}
 	return true, nil
 }
 
-// Owners lists every partner that owner rules can assign, so the UI can offer
-// them before any matching transaction exists.
+// Owners lists every partner who can hold a personal budget, so the UI can
+// offer them before any matching transaction exists.
+//
+// It reads budget_contributors because that table is now what defines a
+// partner: transactions.owner and owner_rules.owner are foreign keys to
+// budget_contributors.name, so no other name can reach either column. The list
+// used to be gathered from the two owner columns instead, which could only name
+// a partner some row already pointed at — a contributor added before their
+// first rule or transaction was missing from the dropdown that was supposed to
+// let somebody give them one.
 func Owners() ([]string, error) {
 	rows, err := QueryRows(
-		`SELECT owner FROM owner_rules
-		 UNION
-		 SELECT owner FROM transactions WHERE owner IS NOT NULL
-		 ORDER BY owner`,
+		`SELECT name AS owner FROM budget_contributors ORDER BY name`,
 	)
 	if err != nil {
 		return nil, err

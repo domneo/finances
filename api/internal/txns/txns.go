@@ -283,7 +283,7 @@ func Insert(rows []Transaction) (int, error) {
 
 		q := "INSERT INTO transactions (" + strings.Join(insertColumns, ", ") + ") VALUES " + strings.Join(values, ", ")
 		if _, err := tx.Exec(q, args...); err != nil {
-			return 0, err
+			return 0, ownerFKError(err)
 		}
 	}
 
