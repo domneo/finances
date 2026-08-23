@@ -1,0 +1,15 @@
+{
+  "services": {
+    "ui": {
+      "root": "ui/"
+    },
+    "api": {
+      "root": "api/",
+      "entrypoint": "main.go"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "ui" } }
+  ]
+}
