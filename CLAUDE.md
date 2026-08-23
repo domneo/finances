@@ -36,6 +36,8 @@ An owner can also be set by hand for a one-off, so `transactions.owner_source` r
 
 **`ui/`** — SvelteKit app in **Svelte 5 runes mode** (enforced project-wide via `svelte.config.js`). Each route has a `+page.ts` universal load function that fetches from the API and a `+page.svelte` for rendering. Filter state lives in URL search params — `goto()` with `replaceState: true` is used to update params, which re-triggers the load function. Local `$state` variables mirror the URL params and are kept in sync via `$effect`.
 
+**Design system** — the styling comes from `bleed`, a separate repo, whose built CSS, fonts and icon sprite have to sit at `ui/static/ds` for `app.html` and the sprite import in `+layout.svelte` to find them. That directory is generated, not committed: `ui/scripts/sync-ds.js` runs ahead of `dev`, `build` and `check` and copies `dist` out of the `bleed` dependency (a git dependency pinned in `pnpm-lock.yaml`), unless the directory is already a working symlink, which it leaves alone. So a deploy gets the pinned commit, and a checkout next to a local `bleed` clone can keep `ln -s ../../../bleed/dist ui/static/ds` and see design changes live without reinstalling. It was previously that symlink and nothing else, committed, which built here and failed anywhere the sibling repo did not exist. Run `pnpm --filter ui sync:bleed` to refresh the copy by hand, and `pnpm update bleed` in `ui/` to move to a newer design system.
+
 ## Data conventions
 
 - Amounts are signed floats in the API: **negative = spend, positive = credit/income**. The column is `numeric`, so Postgres sums it exactly; `QueryRows` converts it to a float on the way out

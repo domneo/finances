@@ -1,6 +1,6 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
-	import iconSprite from '../../static/bleed/icons.svg?raw';
+	import iconSprite from '../../static/ds/icons.svg?raw';
 
 	let { children } = $props();
 </script>
