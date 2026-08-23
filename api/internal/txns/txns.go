@@ -64,6 +64,11 @@ func Open() error {
 		DB = nil
 		return fmt.Errorf("connecting to Postgres: %w", err)
 	}
+
+	// Which of the two households in this database the process serves. Read
+	// here rather than lazily so it is fixed before the first query, and so a
+	// command that never calls Dataset still writes its rows to the right one.
+	demoMode = readDemoMode()
 	return nil
 }
 
@@ -243,7 +248,12 @@ func QueryOne(q string, args ...any) (map[string]any, error) {
 // it sends per statement. The database is now across a network, so rows go up
 // in batches rather than one round trip each; Postgres caps a statement at
 // 65535 parameters, which this stays well inside.
-var insertColumns = []string{"date", "account", "category", "reference", "amount", "currency", "owner", "owner_source"}
+//
+// is_dummy is on the list so a row is stamped with the dataset that wrote it:
+// a statement imported while DEMO_MODE is on stays in the demo household and
+// is invisible to the real one, and vice versa. Nothing in the API can move a
+// row between the two — that is a deliberate edit in Supabase.
+var insertColumns = []string{"date", "account", "category", "reference", "amount", "currency", "owner", "owner_source", "is_dummy"}
 
 const insertChunk = 500
 
@@ -278,7 +288,7 @@ func Insert(rows []Transaction) (int, error) {
 				placeholders[i] = "$" + strconv.Itoa(n)
 			}
 			values = append(values, "("+strings.Join(placeholders, ", ")+")")
-			args = append(args, t.Date, t.Account, t.Category, t.Reference, t.Amount, currency, t.Owner, t.OwnerSource)
+			args = append(args, t.Date, t.Account, t.Category, t.Reference, t.Amount, currency, t.Owner, t.OwnerSource, demoMode)
 		}
 
 		q := "INSERT INTO transactions (" + strings.Join(insertColumns, ", ") + ") VALUES " + strings.Join(values, ", ")

@@ -32,6 +32,12 @@ func main() {
 	http.HandleFunc("/api/accounts", accountsHandler)
 	http.HandleFunc("/api/owners", ownersHandler)
 
+	// Worth a line in the log: every answer this process gives is confined to
+	// one of the two households, and which one is not visible from the outside.
+	if txns.Demo() {
+		log.Println("DEMO_MODE is on: serving the dummy dataset, not real transactions")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5001"
@@ -85,11 +91,14 @@ func ownerFilter(r *http.Request, clauses []string, args []any) ([]string, []any
 	return clauses, args
 }
 
+// whereClause joins a handler's filters into a WHERE, always leading with the
+// predicate that confines the query to the dataset this process serves. Every
+// transactions query in this file goes through here or names txns.Dataset
+// itself, so the demo and real households never appear in the same answer.
+// Because that predicate is always present the result is never empty, which is
+// why the old "no clauses, no WHERE" case is gone.
 func whereClause(clauses []string) string {
-	if len(clauses) == 0 {
-		return ""
-	}
-	return "WHERE " + strings.Join(clauses, " AND ")
+	return "WHERE " + strings.Join(append([]string{txns.Dataset("")}, clauses...), " AND ")
 }
 
 func transactionByIDHandler(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +113,7 @@ func transactionByIDHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPatch:
 		patchTransactionHandler(w, r, id)
 	case http.MethodDelete:
-		res, err := txns.Exec("DELETE FROM transactions WHERE id = ?", id)
+		res, err := txns.Exec("DELETE FROM transactions WHERE id = ? AND "+txns.Dataset(""), id)
 		if err != nil {
 			writeError(w, err)
 			return
@@ -152,7 +161,7 @@ func patchTransactionHandler(w http.ResponseWriter, r *http.Request, id int) {
 		return
 	}
 
-	row, err := txns.QueryOne("SELECT * FROM transactions WHERE id = ?", id)
+	row, err := txns.QueryOne("SELECT * FROM transactions WHERE id = ? AND "+txns.Dataset(""), id)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -383,7 +392,7 @@ type budgetContributor struct {
 // beside the transactions they match rather than in the source tree.
 func loadBudgetContributors() ([]budgetContributor, error) {
 	rows, err := txns.QueryRows(
-		"SELECT name, reference_match, expected FROM budget_contributors ORDER BY name",
+		"SELECT name, reference_match, expected FROM budget_contributors WHERE " + txns.Dataset("") + " ORDER BY name",
 	)
 	if err != nil {
 		return nil, err
@@ -444,7 +453,7 @@ type categoryTotal struct {
 func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	month := r.URL.Query().Get("month")
 	if month == "" {
-		row, err := txns.QueryOne("SELECT to_char(MAX(date), 'YYYY-MM') AS month FROM transactions")
+		row, err := txns.QueryOne("SELECT to_char(MAX(date), 'YYYY-MM') AS month FROM transactions WHERE " + txns.Dataset(""))
 		if err != nil {
 			writeError(w, err)
 			return
@@ -507,7 +516,8 @@ func budgetContributions(month string) ([]contribution, error) {
 			        COUNT(*) AS count,
 			        MIN(date) AS date
 			 FROM transactions
-			 WHERE to_char(date, 'YYYY-MM') = ?
+			 WHERE `+txns.Dataset("")+`
+			   AND to_char(date, 'YYYY-MM') = ?
 			   AND account = ?
 			   AND owner IS NULL
 			   AND amount > 0
@@ -560,7 +570,8 @@ func recurringExpenses(month, windowStart, monthEnd string) ([]recurring, error)
 		        SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) AS inflow,
 		        COUNT(*) AS count
 		 FROM transactions t JOIN categories c ON c.name = t.category
-		 WHERE c.cadence IN ('monthly', 'yearly')
+		 WHERE `+txns.Dataset("t.")+`
+		   AND c.cadence IN ('monthly', 'yearly')
 		   AND t.owner IS NULL
 		   AND to_char(t.date, 'YYYY-MM') BETWEEN ? AND ?
 		 GROUP BY t.category, month`,
@@ -573,7 +584,7 @@ func recurringExpenses(month, windowStart, monthEnd string) ([]recurring, error)
 	// Last payment date can predate the window (a yearly bill missed this year).
 	lastRows, err := txns.QueryRows(
 		`SELECT category, MAX(date) AS last FROM transactions
-		 WHERE category IS NOT NULL AND owner IS NULL AND date <= ?
+		 WHERE `+txns.Dataset("")+` AND category IS NOT NULL AND owner IS NULL AND date <= ?
 		 GROUP BY category`,
 		monthEnd,
 	)
@@ -659,6 +670,7 @@ func variableExpenses(month string) ([]categoryTotal, error) {
 		 FROM categories c
 		 LEFT JOIN transactions t
 		        ON t.category = c.name AND t.owner IS NULL
+		       AND `+txns.Dataset("t.")+`
 		       AND to_char(t.date, 'YYYY-MM') = ?
 		 WHERE c.cadence = 'variable'
 		 GROUP BY c.name`,
@@ -680,7 +692,8 @@ func variableExpenses(month string) ([]categoryTotal, error) {
 	un, err := txns.QueryOne(
 		`SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS count
 		 FROM transactions
-		 WHERE category IS NULL AND owner IS NULL AND to_char(date, 'YYYY-MM') = ?`,
+		 WHERE `+txns.Dataset("")+` AND category IS NULL AND owner IS NULL
+		   AND to_char(date, 'YYYY-MM') = ?`,
 		month,
 	)
 	if err != nil {
@@ -727,7 +740,7 @@ func ownersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func accountsHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := txns.QueryRows("SELECT DISTINCT account FROM transactions ORDER BY account")
+	rows, err := txns.QueryRows("SELECT DISTINCT account FROM transactions WHERE " + txns.Dataset("") + " ORDER BY account")
 	if err != nil {
 		writeError(w, err)
 		return

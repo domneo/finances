@@ -49,6 +49,13 @@ type table struct {
 // and category handlers in main.go (categories), CategorizeRows
 // (category_keywords), loadOwnerRules (owner_rules) and loadBudgetContributors
 // (budget_contributors).
+//
+// is_dummy appears on the three tables that hold personal data because
+// txns.Dataset now filters every read of them by it and Insert writes it.
+// Dropping it in Supabase would not fail a query — it would merge the demo
+// household into the real one, which is exactly the kind of silent change this
+// command exists to catch. It is listed as non-nullable in the sense the
+// nullable field means: the code writes a bool there, never NULL.
 var expected = []table{
 	{"transactions", []column{
 		{"id", "integer", false},
@@ -60,6 +67,7 @@ var expected = []table{
 		{"currency", "text", false},
 		{"owner", "text", true},
 		{"owner_source", "text", true},
+		{"is_dummy", "boolean", false},
 	}},
 	{"categories", []column{
 		{"name", "text", false},
@@ -73,11 +81,13 @@ var expected = []table{
 		{"keyword", "text", false},
 		{"category", "text", true},
 		{"owner", "text", false},
+		{"is_dummy", "boolean", false},
 	}},
 	{"budget_contributors", []column{
 		{"name", "text", false},
 		{"reference_match", "text", false},
 		{"expected", "numeric", false},
+		{"is_dummy", "boolean", false},
 	}},
 }
 

@@ -66,6 +66,7 @@ func (r ownerRule) matches(reference, category string) bool {
 func loadOwnerRules() ([]ownerRule, error) {
 	rows, err := QueryRows(
 		`SELECT keyword, COALESCE(category, '') AS category, owner FROM owner_rules
+		 WHERE ` + Dataset("") + `
 		 ORDER BY COALESCE(category, '') = '', LENGTH(keyword) DESC`,
 	)
 	if err != nil {
@@ -186,7 +187,7 @@ func ApplyOwnerRules() (changed, protected int, err error) {
 		`SELECT id, COALESCE(reference, '') AS reference,
 		        COALESCE(category, '') AS category,
 		        owner, COALESCE(owner_source, '') AS owner_source
-		 FROM transactions`,
+		 FROM transactions WHERE ` + Dataset(""),
 	)
 	if err != nil {
 		return 0, 0, err
@@ -240,7 +241,7 @@ func ApplyOwnerRules() (changed, protected int, err error) {
 func SetOwner(id int, owner *string) (bool, error) {
 	row, err := QueryOne(
 		`SELECT COALESCE(reference, '') AS reference, COALESCE(category, '') AS category
-		 FROM transactions WHERE id = ?`, id,
+		 FROM transactions WHERE id = ? AND `+Dataset(""), id,
 	)
 	if err != nil || row == nil {
 		return false, err
@@ -290,7 +291,7 @@ func SetOwner(id int, owner *string) (bool, error) {
 // let somebody give them one.
 func Owners() ([]string, error) {
 	rows, err := QueryRows(
-		`SELECT name AS owner FROM budget_contributors ORDER BY name`,
+		`SELECT name AS owner FROM budget_contributors WHERE ` + Dataset("") + ` ORDER BY name`,
 	)
 	if err != nil {
 		return nil, err
