@@ -1,6 +1,9 @@
 {
   "name": "finances",
-  "private": true,
+  "description": "Personal finance dashboard",
+  "license": "MIT",
+  "author": "Dominic Neo",
+  "type": "module",
   "scripts": {
     "dev": "pnpm --filter ui dev",
     "build": "pnpm --filter ui build",
