@@ -61,6 +61,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>By Month · Finances</title>
+</svelte:head>
+
 <main>
 	<h1>By Month</h1>
 

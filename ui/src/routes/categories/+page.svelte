@@ -28,6 +28,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>By Category · Finances</title>
+</svelte:head>
+
 <main>
 	<h1>By Category</h1>
 

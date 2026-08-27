@@ -138,6 +138,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Upload statements · Finances</title>
+</svelte:head>
+
 <main>
 	<h1>Upload statements</h1>
 	<p class="hint">

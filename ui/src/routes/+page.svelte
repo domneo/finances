@@ -111,6 +111,10 @@
 	{#if isCredit(n)}<span class="credit">+{fmt(n)}</span>{:else}{fmt(n)}{/if}
 {/snippet}
 
+<svelte:head>
+	<title>Dashboard · Finances</title>
+</svelte:head>
+
 <main>
 	<header class="head">
 		<h1 class="t-display-5">Dashboard</h1>

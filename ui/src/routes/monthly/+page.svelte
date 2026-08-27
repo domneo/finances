@@ -28,6 +28,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Monthly · Finances</title>
+</svelte:head>
+
 <main>
 	<h1>Monthly</h1>
 

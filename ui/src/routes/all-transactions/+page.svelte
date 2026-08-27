@@ -117,6 +117,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Transactions · Finances</title>
+</svelte:head>
+
 <main>
 	<h1>Transactions</h1>
 
