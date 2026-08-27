@@ -128,7 +128,7 @@ api/                Go HTTP server, no framework. All handlers in main.go.
 ui/                 SvelteKit app, Svelte 5 runes mode
 ```
 
-The UI styling comes from `bleed`, a separate design-system repo, copied into `ui/static/ds` by a prebuild script. That directory is generated and should not be committed. If you have `bleed` checked out next door you can symlink it instead (`ln -s ../../../bleed/dist ui/static/ds`) and the `sync-ds` script will leave your symlink alone.
+The UI styling comes from `bleed`, a separate design-system repo, copied into `ui/src/lib/assets/ds` by a prebuild script. That directory is generated and should not be committed. If you have `bleed` checked out next door you can symlink it instead (`ln -s ../../../../../bleed/dist ui/src/lib/assets/ds`) and the `sync-ds` script will leave your symlink alone.
 
 Other commands worth knowing:
 

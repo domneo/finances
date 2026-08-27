@@ -24,4 +24,4 @@ vite.config.ts.timestamp-*
 
 # Built design system, materialised by ui/scripts/sync-ds.js — a copy of the
 # bleed dependency here, or a symlink to a sibling checkout during development.
-/static/ds
+/src/lib/assets/ds
