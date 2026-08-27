@@ -15,6 +15,7 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
+		"@vercel/analytics": "^2.0.1",
 		"bleed": "github:domneo/bleed"
 	},
 	"devDependencies": {

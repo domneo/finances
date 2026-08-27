@@ -12,6 +12,9 @@ importers:
 
   ui:
     dependencies:
+      '@vercel/analytics':
+        specifier: ^2.0.1
+        version: 2.0.1(@sveltejs/kit@2.60.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.55.7)(vite@8.0.13))(svelte@5.55.7)(typescript@6.0.3)(vite@8.0.13))(svelte@5.55.7)
       bleed:
         specifier: github:domneo/bleed
         version: https://codeload.github.com/domneo/bleed/tar.gz/2f87cca1f7f4ca8657d4171d1a054fad7054a189
@@ -229,6 +232,35 @@ packages:
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
+  '@vercel/analytics@2.0.1':
+    resolution: {integrity: sha512-MTQG6V9qQrt1tsDeF+2Uoo5aPjqbVPys1xvnIftXSJYG2SrwXRHnqEvVoYID7BTruDz4lCd2Z7rM1BdkUehk2g==}
+    peerDependencies:
+      '@remix-run/react': ^2
+      '@sveltejs/kit': ^1 || ^2
+      next: '>= 13'
+      nuxt: '>= 3'
+      react: ^18 || ^19 || ^19.0.0-rc
+      svelte: '>= 4'
+      vue: ^3
+      vue-router: ^4
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      '@sveltejs/kit':
+        optional: true
+      next:
+        optional: true
+      nuxt:
+        optional: true
+      react:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+      vue-router:
+        optional: true
+
   acorn@8.16.0:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
     engines: {node: '>=0.4.0'}
@@ -243,7 +275,7 @@ packages:
     engines: {node: '>= 0.4'}
 
   bleed@https://codeload.github.com/domneo/bleed/tar.gz/2f87cca1f7f4ca8657d4171d1a054fad7054a189:
-    resolution: {tarball: https://codeload.github.com/domneo/bleed/tar.gz/2f87cca1f7f4ca8657d4171d1a054fad7054a189}
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/domneo/bleed/tar.gz/2f87cca1f7f4ca8657d4171d1a054fad7054a189}
     version: 1.0.0
 
   chokidar@4.0.3:
@@ -673,6 +705,11 @@ snapshots:
   '@types/estree@1.0.9': {}
 
   '@types/trusted-types@2.0.7': {}
+
+  '@vercel/analytics@2.0.1(@sveltejs/kit@2.60.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.55.7)(vite@8.0.13))(svelte@5.55.7)(typescript@6.0.3)(vite@8.0.13))(svelte@5.55.7)':
+    optionalDependencies:
+      '@sveltejs/kit': 2.60.1(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.55.7)(vite@8.0.13))(svelte@5.55.7)(typescript@6.0.3)(vite@8.0.13)
+      svelte: 5.55.7
 
   acorn@8.16.0: {}
 
